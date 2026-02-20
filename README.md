@@ -1,47 +1,36 @@
-# Kutiit
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Kutiit is a digital textbook, dictionary, and community platform for learning the Nandi language.  
-The goal is to preserve, teach, and celebrate Nandi through a modern, accessible, and culturally grounded learning experience.
+## Getting Started
 
-## 📚 What Is Kutiit?
+First, run the development server:
 
-Kutiit brings together three core pillars:
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-### 1. Textbook — Structured Learning
-A guided curriculum organized into units and lessons, including:
-- Grammar explanations  
-- Reading passages  
-- Example sentences  
-- Exercises  
-- Cultural notes  
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 2. Dictionary — Language Reference
-A searchable dictionary with:
-- Nandi words  
-- English meanings  
-- Example sentences  
-- Audio pronunciation  
-- Part of speech  
-- Cultural usage notes  
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### 3. Community — Learning Together
-A supportive space where learners can:
-- Ask questions  
-- Discuss lessons  
-- Request clarifications  
-- Learn from native speakers  
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 🎯 Project Goals
-- Make Nandi accessible to beginners and diaspora communities  
-- Preserve linguistic and cultural knowledge  
-- Provide a trusted reference for future generations  
-- Build a supportive learning environment  
+## Learn More
 
-## 🛠️ Technology (Planned)
-- Next.js (frontend + backend)
-- Supabase (database, auth, storage)
-- Meilisearch (dictionary search)
-- Vercel (deployment)
+To learn more about Next.js, take a look at the following resources:
 
-## 📄 License
-MIT License
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
