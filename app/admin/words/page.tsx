@@ -5,18 +5,18 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function WordsListPage() {
-  const [words, setWords] = useState([]);
+  const [words, setWords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadWords() {
+    async function fetchWords() {
       const { data, error } = await supabase
         .from("words")
         .select("*")
-        .order("word", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error loading words:", error);
+        console.error("Error fetching words:", error);
       } else {
         setWords(data);
       }
@@ -24,49 +24,80 @@ export default function WordsListPage() {
       setLoading(false);
     }
 
-    loadWords();
+    fetchWords();
   }, []);
 
   if (loading) {
-    return <div className="p-6">Loading words…</div>;
+    return <p className="p-4">Loading words...</p>;
   }
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Words</h1>
-        <Link
-          href="/admin/words/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add Word
-        </Link>
-      </div>
+      <h1 className="text-2xl font-semibold mb-4">Words</h1>
 
-      {words.length === 0 ? (
-        <p>No words found.</p>
-      ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left p-2">Word</th>
-              <th className="text-left p-2">Meaning</th>
-              <th className="text-left p-2">Part of Speech</th>
-              <th className="text-left p-2">Category</th>
+      <Link
+        href="/admin/words/new/"
+        className="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        + Add New Word
+      </Link>
+
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Word</th>
+            <th className="border p-2">Meaning</th>
+            <th className="border p-2">Part of Speech</th>
+            <th className="border p-2">Category</th>
+            <th className="border p-2">Created</th>
+            <th className="border p-2">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {words.map((w) => (
+            <tr key={w.id}>
+              <td className="border p-2">{w.word}</td>
+              <td className="border p-2">{w.meaning}</td>
+              <td className="border p-2">{w.part_of_speech}</td>
+              <td className="border p-2">{w.category}</td>
+              <td className="border p-2">
+                {new Date(w.created_at).toLocaleDateString()}
+              </td>
+              <td className="border p-2 space-x-2">
+                <Link
+                  href={`/admin/words/edit/${w.id}`}
+                  className="text-blue-600 underline"
+                >
+                  Edit
+                </Link>
+
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this word?")) return;
+
+                    const { error } = await supabase
+                      .from("words")
+                      .delete()
+                      .eq("id", w.id);
+                    
+                    console.log("Delete errir:", error);                        
+                    if (error) {
+                        console.error("DELETE ERROR:", error);
+                        alert(error.message);
+                    } else {
+                      setWords(words.filter((item) => item.id !== w.id));
+                    }
+                  }}
+                  className="text-red-600 underline"
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {words.map((w) => (
-              <tr key={w.id} className="border-b hover:bg-gray-50">
-                <td className="p-2">{w.word}</td>
-                <td className="p-2">{w.meaning}</td>
-                <td className="p-2">{w.part_of_speech}</td>
-                <td className="p-2">{w.category}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
