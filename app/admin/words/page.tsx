@@ -32,72 +32,104 @@ export default function WordsListPage() {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Words</h1>
+    <div className="max-w-4xl mx-auto bg-white p-8 shadow rounded">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Words</h1>
 
-      <Link
-        href="/admin/words/new/"
-        className="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded"
-      >
-        + Add New Word
-      </Link>
+        <Link
+          href="/admin/words/new"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          + Add New Word
+        </Link>
+      </div>
 
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Word</th>
-            <th className="border p-2">Meaning</th>
-            <th className="border p-2">Part of Speech</th>
-            <th className="border p-2">Category</th>
-            <th className="border p-2">Created</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
+      {words.length === 0 ? (
+        <p>No words found.</p>
+      ) : (
+        <div className="space-y-6">
           {words.map((w) => (
-            <tr key={w.id}>
-              <td className="border p-2">{w.word}</td>
-              <td className="border p-2">{w.meaning}</td>
-              <td className="border p-2">{w.part_of_speech}</td>
-              <td className="border p-2">{w.category}</td>
-              <td className="border p-2">
-                {new Date(w.created_at).toLocaleDateString()}
-              </td>
-              <td className="border p-2 space-x-2">
-                <Link
-                  href={`/admin/words/edit/${w.id}`}
-                  className="text-blue-600 underline"
-                >
-                  Edit
-                </Link>
+            <div
+              key={w.id}
+              className="border-b pb-5 pt-2 hover:bg-gray-50 px-4 rounded transition"
+            >
+              {/* Top row: Word + POS + Actions */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-baseline gap-3">
 
-                <button
-                  onClick={async () => {
-                    if (!confirm("Delete this word?")) return;
+                    {/* CLICKABLE WORD */}
+                    <Link href={`/word/${w.slug}`}>
+                      <h2 className="text-xl font-bold text-blue-700 hover:underline">
+                        {w.word}
+                      </h2>
+                    </Link>
 
-                    const { error } = await supabase
-                      .from("words")
-                      .delete()
-                      .eq("id", w.id);
-                    
-                    console.log("Delete errir:", error);                        
-                    if (error) {
+                    <span className="text-sm text-gray-600">
+                      {w.part_of_speech}
+                    </span>
+                  </div>
+
+                  <p className="text-gray-800 mt-1">{w.meaning}</p>
+                </div>
+
+                {/* Actions */}
+                <div className="text-right space-x-3">
+                  <Link
+                    href={`/admin/words/edit/${w.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Edit
+                  </Link>
+
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Delete this word?")) return;
+
+                      const { error } = await supabase
+                        .from("words")
+                        .delete()
+                        .eq("id", w.id);
+
+                      if (error) {
                         console.error("DELETE ERROR:", error);
                         alert(error.message);
-                    } else {
-                      setWords(words.filter((item) => item.id !== w.id));
-                    }
-                  }}
-                  className="text-red-600 underline"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
+                      } else {
+                        setWords(words.filter((item) => item.id !== w.id));
+                      }
+                    }}
+                    className="text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {/* Example sentence */}
+              {w.example_sentence && (
+                <div className="mt-3">
+                  <p className="text-gray-700 italic">
+                    “{w.example_sentence}”
+                  </p>
+                  {w.example_translation && (
+                    <p className="text-gray-600 ml-4">
+                      → {w.example_translation}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Category + Created date */}
+              <div className="mt-3 text-sm text-gray-500 flex gap-6">
+                <span>Category: {w.category}</span>
+                <span>
+                  Added: {new Date(w.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      )}
     </div>
   );
 }
