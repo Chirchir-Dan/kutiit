@@ -1,101 +1,82 @@
-import Link from "next/link";
 import { supabaseServer } from "@/lib/supabaseServer";
+import { linkify } from "@/lib/linkify";
+import SearchBar from "@/app/components/SearchBar";
 
-async function getWord(slug: string) {
+export default async function WordDetailPage(
+  props: { params: Promise<{ slug: string }> }
+) {
+  // Next.js 14+ requires awaiting params in async server components
+  const { slug } = await props.params;
+
   const supabase = supabaseServer();
 
-  const { data, error } = await supabase
+  const { data: word } = await supabase
     .from("words")
-    .select("*")
+    .select(
+      "id, word, slug, meaning, example_sentence, example_translation, notes, synonyms, antonyms"
+    )
     .eq("slug", slug)
     .single();
 
-  if (error) return null;
-  return data;
-}
-
-export default async function WordDetailPage(props: { params: Promise<{ slug: string }> }) {
-  const { slug } = await props.params; // FIX: await params
-
-  const word = await getWord(slug);
-
   if (!word) {
     return (
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-2xl font-bold mb-4">Word not found</h1>
-        <p className="text-gray-700 mb-4">
-          We couldn’t find this word in the dictionary.
-        </p>
-
-        <Link href="/search" className="text-blue-600 underline">
-          Go back to search
-        </Link>
-      </div>
+      <main className="max-w-3xl mx-auto px-4 py-10">
+        <SearchBar />
+        <p className="mt-10 text-gray-600">Word not found.</p>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-3xl font-bold text-gray-900">{word.word}</h1>
-        <span className="text-lg text-gray-600">{word.part_of_speech}</span>
-      </div>
+    <main className="max-w-3xl mx-auto px-4 py-10 text-gray-900">
+      {/* Persistent search bar */}
+      <SearchBar />
 
-      <p className="text-xl text-gray-800 mt-3">{word.meaning}</p>
+      {/* Word */}
+      <h1 className="mt-8 text-3xl font-semibold tracking-tight">
+        {word.word}
+      </h1>
 
-      {word.pronunciation && (
-        <p className="text-gray-600 mt-2">/{word.pronunciation}/</p>
-      )}
+      {/* Meaning */}
+      <p className="mt-3 text-lg text-gray-800">
+        {linkify(word.meaning)}
+      </p>
 
-      {word.audio_url && (
-        <audio controls className="mt-3">
-          <source src={word.audio_url} />
-        </audio>
-      )}
-
-      {word.example_sentence && (
-        <div className="mt-6">
-          <p className="italic text-gray-700">
-            “{word.example_sentence}”
-          </p>
+      {/* Examples */}
+      {(word.example_sentence || word.example_translation) && (
+        <div className="mt-4 text-sm text-gray-700 space-y-1">
+          {word.example_sentence && <p>{linkify(word.example_sentence)}</p>}
           {word.example_translation && (
-            <p className="text-gray-600 ml-4">
-              → {word.example_translation}
+            <p className="italic text-gray-600">
+              {linkify(word.example_translation)}
             </p>
           )}
         </div>
       )}
 
+      {/* Synonyms */}
       {word.synonyms && (
         <div className="mt-6">
-          <h2 className="font-semibold text-gray-900">Synonyms</h2>
-          <p className="text-gray-700">{word.synonyms}</p>
+          <h3 className="text-sm font-semibold text-gray-800">Synonyms</h3>
+          <p className="text-sm text-gray-700">{linkify(word.synonyms)}</p>
         </div>
       )}
 
+      {/* Antonyms */}
       {word.antonyms && (
         <div className="mt-4">
-          <h2 className="font-semibold text-gray-900">Antonyms</h2>
-          <p className="text-gray-700">{word.antonyms}</p>
+          <h3 className="text-sm font-semibold text-gray-800">Antonyms</h3>
+          <p className="text-sm text-gray-700">{linkify(word.antonyms)}</p>
         </div>
       )}
 
+      {/* Notes */}
       {word.notes && (
-        <div className="mt-4">
-          <h2 className="font-semibold text-gray-900">Notes</h2>
-          <p className="text-gray-700">{word.notes}</p>
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-800">Notes</h3>
+          <p className="text-sm text-gray-600 italic">{linkify(word.notes)}</p>
         </div>
       )}
-
-      <div className="mt-6 text-sm text-gray-500">
-        Category: {word.category}
-      </div>
-
-      <div className="mt-8">
-        <Link href="/search" className="text-blue-600 underline">
-          Back to search
-        </Link>
-      </div>
-    </div>
+    </main>
   );
 }

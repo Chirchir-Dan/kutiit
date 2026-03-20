@@ -1,28 +1,66 @@
+import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServer";
 
-export async function GET(req) {
-  const supabase = supabaseServer();
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q") || "";
+  const query = (searchParams.get("q") || "").toLowerCase().trim();
 
-  if (!q.trim()) {
-    return Response.json({ results: [], suggestions: [] });
+  if (!query) {
+    return NextResponse.json({ results: [], suggestions: [] });
   }
 
-  // Main search
-  const { data: results } = await supabase
-    .from("words")
-    .select("id, word, meaning, part_of_speech, example_sentence, example_translation, audio_url, category, notes, synonyms, antonyms, slug")
-    .ilike("word", `%${q}%`)
-    .order("word");
+  const supabase = supabaseServer();
 
-  // Typo suggestions using trigram similarity
-  const { data: suggestions } = await supabase.rpc("word_suggestions", {
-    search_term: q,
+  // Fetch all words (you can optimize later)
+  const { data: words } = await supabase
+    .from("words")
+    .select("id, word, slug, notes, synonyms, antonyms, meaning, example_sentence, example_translation");
+
+  if (!words) {
+    return NextResponse.json({ results: [], suggestions: [] });
+  }
+
+  // -----------------------------
+  // 1. RESULTS (Nandi + English)
+  // -----------------------------
+  const results = words.filter((w) => {
+    const nandi = w.word.toLowerCase();
+    const meaning = w.meaning?.toLowerCase() || "";
+    const exTrans = w.example_translation?.toLowerCase() || "";
+
+    return (
+      nandi.includes(query) ||
+      meaning.includes(query) ||
+      exTrans.includes(query)
+    );
   });
 
-  return Response.json({
-    results: results || [],
-    suggestions: suggestions || [],
+  // -----------------------------
+  // 2. SUGGESTIONS (Nandi + English)
+  // -----------------------------
+  const nandiSuggestions = words.filter((w) =>
+    w.word.toLowerCase().startsWith(query)
+  );
+
+  const englishSuggestions = words.filter((w) =>
+    (w.meaning || "").toLowerCase().startsWith(query)
+  );
+
+  const translationSuggestions = words.filter((w) =>
+    (w.example_translation || "").toLowerCase().startsWith(query)
+  );
+
+  // Combine + dedupe
+  const suggestions = [
+    ...nandiSuggestions,
+    ...englishSuggestions,
+    ...translationSuggestions,
+  ].filter(
+    (w, i, arr) => arr.findIndex((x) => x.slug === w.slug) === i
+  );
+
+  return NextResponse.json({
+    results,
+    suggestions: suggestions.slice(0, 5),
   });
 }
