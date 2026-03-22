@@ -1,36 +1,58 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function Mission() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const element = document.getElementById("mission-section");
+      if (!element) return;
+
+      const rect = element.getBoundingClientRect();
+      if (rect.top < window.innerHeight - 100) {
+        setVisible(true);
+      }
+    };
+
+    window.addEventListener("scroll", onScroll);
+    onScroll();
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <section className="mt-20">
-      <h2 className="text-2xl font-semibold tracking-tight">Our Mission</h2>
+    <section
+      id="mission-section"
+      className={`
+        mb-20 transition-all duration-700 
+        ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
+      `}
+    >
+      <h2 className="text-2xl font-semibold text-[--accent-green] mb-4">
+        Our Mission
+      </h2>
 
-      <p className="mt-3   max-w-2xl">
-        Kutiit exists to document, protect, and celebrate the Nandi language.
-        Every word, phrase, and example sentence is part of a living archive —
-        a resource for learners, families, and future generations.
-      </p>
-
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="p-6 border rounded-lg bg-white shadow-sm">
-          <h3 className="font-semibold text-lg">Preserve</h3>
-          <p className="mt-2 text-sm  ">
-            Documenting vocabulary, expressions, and cultural meaning with care.
-          </p>
-        </div>
-
-        <div className="p-6 border rounded-lg bg-white shadow-sm">
-          <h3 className="font-semibold text-lg">Connect</h3>
-          <p className="mt-2 text-sm  ">
-            Every word is linked — meanings, examples, synonyms, categories.
-          </p>
-        </div>
-
-        <div className="p-6 border rounded-lg bg-white shadow-sm">
-          <h3 className="font-semibold text-lg">Teach</h3>
-          <p className="mt-2 text-sm  ">
-            A tool for learners, families, and future generations.
-          </p>
-        </div>
-      </div>
+      <ul className="space-y-3 max-w-2xl">
+        {[
+          "Document Kalenjin vocabulary across all communities.",
+          "Highlight dialect variations with accuracy and respect.",
+          "Preserve cultural knowledge, proverbs, and expressions.",
+          "Support learners, researchers, and future generations.",
+          "Build a digital home where every Kalenjin speaker feels represented.",
+        ].map((item, i) => (
+          <li
+            key={i}
+            className={`
+              transition-all duration-700 delay-${i * 150}
+              ${visible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}
+            `}
+          >
+            • {item}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

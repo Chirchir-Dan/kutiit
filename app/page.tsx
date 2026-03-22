@@ -1,17 +1,13 @@
 import Hero from "@/app/components/home/Hero";
-import Mission from "@/app/components/home/Mission";
-import WhyPreserve from "@/app/components/home/WhyPreserve";
-import NavigationCards from "@/app/components/home/NavigationCards";
+import FactsCarousel from "@/app/components/home/FactsCarousel";
+import CommunityInvite from "@/app/components/home/CommunityInvite";
 
 export default function HomePage() {
   return (
-    <main className="max-w-4xl mx-auto px-6 py-16">
+    <main className="max-w-4xl mx-auto px-6 py-16 space-y-20 text-center">
       <Hero />
-      <Mission />
-      <WhyPreserve />
-      <NavigationCards />
-
-    
+      <FactsCarousel />
+      <CommunityInvite />
     </main>
   );
 }
