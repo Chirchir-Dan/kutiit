@@ -80,7 +80,7 @@ export default function DictionaryPage() {
     results[0].word.toLowerCase() !== query.toLowerCase();
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 text-gray-900">
+    <main className="max-w-3xl mx-auto px-4 py-10  ">
       <h1 className="text-3xl font-semibold tracking-tight">Dictionary</h1>
 
       <input
@@ -88,11 +88,11 @@ export default function DictionaryPage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search a word or translation…"
-        className="mt-6 w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
+        className="mt-6 w-full border border-red-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
       />
 
       {showSuggestions && (
-        <p className="mt-4 text-sm text-gray-600">
+        <p className="mt-4 text-sm  ">
           Did you mean:{" "}
           {suggestions.map((s: Word, i: number) => (
             <Link
@@ -122,13 +122,13 @@ export default function DictionaryPage() {
               </Link>
 
               {/* Meaning */}
-              <p className="mt-1 text-sm text-gray-800">
+              <p className="mt-1 text-sm  ">
                 {linkify(w.meaning)}
               </p>
 
               {/* Examples */}
               {(w.example_sentence || w.example_translation) && (
-                <div className="mt-2 text-xs text-gray-700 space-y-1">
+                <div className="mt-2 text-xs   space-y-1">
                   {w.example_sentence && <p>{linkify(w.example_sentence)}</p>}
                   {w.example_translation && (
                     <p className="italic text-gray-600">
@@ -140,7 +140,7 @@ export default function DictionaryPage() {
 
               {/* Synonyms */}
               {w.synonyms && (
-                <p className="mt-2 text-xs text-gray-700">
+                <p className="mt-2 text-xs  ">
                   <span className="font-medium">Synonyms:</span>{" "}
                   {linkify(w.synonyms)}
                 </p>
@@ -148,7 +148,7 @@ export default function DictionaryPage() {
 
               {/* Antonyms */}
               {w.antonyms && (
-                <p className="mt-1 text-xs text-gray-700">
+                <p className="mt-1 text-xs  ">
                   <span className="font-medium">Antonyms:</span>{" "}
                   {linkify(w.antonyms)}
                 </p>
@@ -156,7 +156,7 @@ export default function DictionaryPage() {
 
               {/* Notes */}
               {w.notes && (
-                <p className="mt-2 text-xs text-gray-600 italic">
+                <p className="mt-2 text-xs   italic">
                   {linkify(w.notes)}
                 </p>
               )}

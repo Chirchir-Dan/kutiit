@@ -1,24 +1,24 @@
-// app/layout.tsx
-
-import "./globals.css";
-import Navbar from "./components/Navbar";
+import "./global.css";
+import NavBar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "Kutiit",
-  description: "Nandi Dictionary & Learning Platform",
+  title: "Kutiit — Nandi Dictionary",
+  description: "A living, interconnected dictionary for the Nandi language.",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900">
-        <Navbar />
+      <body className="bg-[--background] text-[--foreground]">
+        <NavBar />
 
-        <main className="max-w-5xl mx-auto px-6 py-10">
-          <div className="bg-white shadow rounded p-8">
-            {children}
-          </div>
+        <main className="min-h-screen max-w-4xl mx-auto px-6 py-12">
+          {children}
         </main>
+
+        <Footer />
       </body>
     </html>
   );
