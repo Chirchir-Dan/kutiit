@@ -31,7 +31,6 @@ export default function DictionaryPage() {
 
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Word[]>([]);
-  const [suggestions, setSuggestions] = useState<Word[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
@@ -78,7 +77,6 @@ export default function DictionaryPage() {
     const q = query.trim();
     if (!q) {
       setResults([]);
-      setSuggestions([]);
       setSelectedWord(null);
       return;
     }
@@ -99,7 +97,6 @@ export default function DictionaryPage() {
 
         const data = await res.json();
         setResults(data.results);
-        setSuggestions(data.suggestions);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error("Search error:", err);
@@ -128,25 +125,7 @@ export default function DictionaryPage() {
         placeholder="Search a word or translation…"
         className="mt-6 w-full rounded-md px-3 py-2 border focus:outline-none"
       />
-
-      {!loading && suggestions.length > 0 && (
-        <p className="mt-4 text-sm">
-          Did you mean:{" "}
-          {suggestions.map((s, i) => {
-            const head = getHeadword(s, query);
-            return (
-              <button
-                key={i}
-                onClick={() => setQuery(head)}
-                className="underline-offset-2 hover:underline mr-2"
-              >
-                {head}
-              </button>
-            );
-          })}
-        </p>
-      )}
-
+      
       {!loading && !selectedWord && results.length > 0 && (
         <ul className="mt-6 space-y-4">
           {results.map((w) => {
@@ -174,7 +153,7 @@ export default function DictionaryPage() {
             );
           })}
         </ul>
-      )}
+      )} 
 
       {selectedWord && (
         <div className="mt-10 p-6 border rounded-lg shadow-sm">

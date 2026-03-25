@@ -1,79 +1,125 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { supabase } from "@/lib/supabase";
+
+// Levenshtein distance (optimized)
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+}
+
+function normalize(str: string | null): string {
+  if (!str) return "";
+  return str.toLowerCase().replace(/[.,!?;:()]/g, "").trim();
+}
+
+function tokenize(str: string | null): string[] {
+  if (!str) return [];
+  return normalize(str).split(/\s+/).filter(Boolean);
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const qRaw = searchParams.get("q") || "";
-  const q = qRaw.trim().toLowerCase();
+  const q = normalize(searchParams.get("q") || "");
 
   if (!q) {
-    return NextResponse.json({ results: [], suggestions: [] });
+    return NextResponse.json({ results: [] });
   }
-
-  const supabase = supabaseServer();
 
   const { data: words, error } = await supabase
     .from("words")
-    .select(`
-      id,
-      entry,
-      slug,
-      meaning,
-      part_of_speech,
-      primary_singular,
-      primary_plural,
-      secondary_singular,
-      secondary_plural,
-      example_sentence,
-      example_translation,
-      notes,
-      synonyms,
-      antonyms
-    `);
+    .select("*");
 
   if (error || !words) {
-    return NextResponse.json({ results: [], suggestions: [] });
+    console.error("Supabase error:", error);
+    return NextResponse.json({ results: []});
   }
 
-  const safe = (v: any) => (v ? String(v).toLowerCase() : "");
+  const scored: Array<{ word: any; score: number }> = [];
 
-  const headword = (w: any) => {
-    if (w.part_of_speech === "noun") {
-      return safe(w.primary_singular) || safe(w.secondary_singular);
+  for (const w of words) {
+    let score = 0;
+
+    const forms = [
+      w.primary_singular,
+      w.primary_plural,
+      w.secondary_singular,
+      w.secondary_plural,
+      w.entry,
+    ].map(normalize);
+
+    const meaning = normalize(w.meaning);
+    const notes = normalize(w.notes);
+    const synonyms = normalize(w.synonyms);
+    const antonyms = normalize(w.antonyms);
+
+    const exampleTokens = [
+      ...tokenize(w.example_sentence),
+      ...tokenize(w.example_translation),
+    ];
+
+    const tokens = [
+      ...forms,
+      meaning,
+      notes,
+      synonyms,
+      antonyms,
+      ...exampleTokens,
+    ].filter(Boolean);
+
+    // 1. Exact match
+    if (tokens.includes(q)) {
+      score = 100;
     }
-    return safe(w.entry);
-  };
 
-  // -------------------------------------------------------
-  // SIMPLE RESULTS ENGINE — NO SUGGESTIONS
-  // -------------------------------------------------------
-  const results = words.filter((w) => {
-    return (
-      headword(w).includes(q) ||
-      safe(w.primary_singular).includes(q) ||
-      safe(w.primary_plural).includes(q) ||
-      safe(w.secondary_singular).includes(q) ||
-      safe(w.secondary_plural).includes(q) ||
-      safe(w.meaning).includes(q) ||
-      safe(w.synonyms).includes(q) ||
-      safe(w.antonyms).includes(q) ||
-      safe(w.example_sentence).includes(q) ||
-      safe(w.example_translation).includes(q) ||
-      safe(w.notes).includes(q)
-    );
-  });
+    // 2. Prefix match
+    if (score < 100 && tokens.some(t => t.startsWith(q))) {
+      score = 80;
+    }
 
-  // If nothing found → tell UI to show "No entries found"
-  if (results.length === 0) {
-    return NextResponse.json({
-      results: [],
-      suggestions: [],
-      notFound: true,
-    });
+    // 3. Substring match
+    if (score < 80 && tokens.some(t => t.includes(q))) {
+      score = 60;
+    }
+
+    // 4. Fuzzy match (distance ≤ 2 instead of 3)
+    if (score < 60) {
+      for (const t of tokens) {
+        const dist = levenshtein(q, t);
+        if (dist <= 2) {
+          score = 50 - dist;
+          break;
+        }
+      }
+    }
+
+    if (score > 0) {
+      scored.push({ word: w, score });
+    }
   }
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const results = scored.slice(0, 20).map(s => s.word);
+  const suggestions = results.slice(0, 5);
 
   return NextResponse.json({
-    results,
-    suggestions: [], // always empty
+    results
   });
 }
