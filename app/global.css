@@ -5,8 +5,8 @@
    KUTIIT THEME — ROOT COLORS
    ------------------------------------------------------- */
 :root {
-  --background: #FAF7F2;   /* Milk / cream */
-  --foreground: #1A1A1A;   /* Soft black text */
+  --background: #3b3131;   /* Milk / cream */
+  --foreground: #ffffff;   /* Soft black text */
   --navbar-bg: #000000;    /* Black navbar/footer */
   --accent-green: #03d418; /* Green headers */
   --accent-red: #B3261E;   /* Red borders */
@@ -25,6 +25,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--accent-green);
 }
 
+
  span, li, strong, em {
   color: var(--foreground);
 }
@@ -35,4 +36,17 @@ h1, h2, h3, h4, h5, h6 {
 
 footer p {
   color: white;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
 }

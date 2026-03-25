@@ -1,31 +1,22 @@
-import Link from "next/link";
-import { findSlugForNandi } from "@/lib/dictionaryIndex";
+import type { JSX } from "react";
 
-export function linkify(text: string) {
+export function linkify(
+  text: string,
+  wrap?: (word: string) => JSX.Element
+) {
   if (!text) return text;
 
-  const tokens = text.split(/(\s+)/); // keep spaces
+  const tokens = text.split(/(\s+|[.,!?;:()])/g);
 
   return tokens.map((token, i) => {
-    const clean = token.toLowerCase().replace(/[^a-zA-Z]/g, "");
-
-    if (!clean) return token;
-
-    // Nandi → word detail
-    const nandiSlug = findSlugForNandi(clean);
-    if (nandiSlug) {
-      return (
-        <Link key={i} href={`/word/${nandiSlug}`} className="hover:underline">
-          {token}
-        </Link>
-      );
+    if (/^\s+$/.test(token) || /^[.,!?;:()]+$/.test(token)) {
+      return token;
     }
 
-    // English → search
-    return (
-      <Link key={i} href={`/dictionary?q=${clean}`} className="hover:underline">
-        {token}
-      </Link>
-    );
+    if (wrap) {
+      return <span key={i}>{wrap(token)}</span>;
+    }
+
+    return token;
   });
 }

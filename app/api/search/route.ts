@@ -3,64 +3,77 @@ import { supabaseServer } from "@/lib/supabaseServer";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const query = (searchParams.get("q") || "").toLowerCase().trim();
+  const qRaw = searchParams.get("q") || "";
+  const q = qRaw.trim().toLowerCase();
 
-  if (!query) {
+  if (!q) {
     return NextResponse.json({ results: [], suggestions: [] });
   }
 
   const supabase = supabaseServer();
 
-  // Fetch all words (you can optimize later)
-  const { data: words } = await supabase
+  const { data: words, error } = await supabase
     .from("words")
-    .select("id, word, slug, notes, synonyms, antonyms, meaning, example_sentence, example_translation");
+    .select(`
+      id,
+      entry,
+      slug,
+      meaning,
+      part_of_speech,
+      primary_singular,
+      primary_plural,
+      secondary_singular,
+      secondary_plural,
+      example_sentence,
+      example_translation,
+      notes,
+      synonyms,
+      antonyms
+    `);
 
-  if (!words) {
+  if (error || !words) {
     return NextResponse.json({ results: [], suggestions: [] });
   }
 
-  // -----------------------------
-  // 1. RESULTS (Nandi + English)
-  // -----------------------------
-  const results = words.filter((w) => {
-    const nandi = w.word.toLowerCase();
-    const meaning = w.meaning?.toLowerCase() || "";
-    const exTrans = w.example_translation?.toLowerCase() || "";
+  const safe = (v: any) => (v ? String(v).toLowerCase() : "");
 
+  const headword = (w: any) => {
+    if (w.part_of_speech === "noun") {
+      return safe(w.primary_singular) || safe(w.secondary_singular);
+    }
+    return safe(w.entry);
+  };
+
+  // -------------------------------------------------------
+  // SIMPLE RESULTS ENGINE — NO SUGGESTIONS
+  // -------------------------------------------------------
+  const results = words.filter((w) => {
     return (
-      nandi.includes(query) ||
-      meaning.includes(query) ||
-      exTrans.includes(query)
+      headword(w).includes(q) ||
+      safe(w.primary_singular).includes(q) ||
+      safe(w.primary_plural).includes(q) ||
+      safe(w.secondary_singular).includes(q) ||
+      safe(w.secondary_plural).includes(q) ||
+      safe(w.meaning).includes(q) ||
+      safe(w.synonyms).includes(q) ||
+      safe(w.antonyms).includes(q) ||
+      safe(w.example_sentence).includes(q) ||
+      safe(w.example_translation).includes(q) ||
+      safe(w.notes).includes(q)
     );
   });
 
-  // -----------------------------
-  // 2. SUGGESTIONS (Nandi + English)
-  // -----------------------------
-  const nandiSuggestions = words.filter((w) =>
-    w.word.toLowerCase().startsWith(query)
-  );
-
-  const englishSuggestions = words.filter((w) =>
-    (w.meaning || "").toLowerCase().startsWith(query)
-  );
-
-  const translationSuggestions = words.filter((w) =>
-    (w.example_translation || "").toLowerCase().startsWith(query)
-  );
-
-  // Combine + dedupe
-  const suggestions = [
-    ...nandiSuggestions,
-    ...englishSuggestions,
-    ...translationSuggestions,
-  ].filter(
-    (w, i, arr) => arr.findIndex((x) => x.slug === w.slug) === i
-  );
+  // If nothing found → tell UI to show "No entries found"
+  if (results.length === 0) {
+    return NextResponse.json({
+      results: [],
+      suggestions: [],
+      notFound: true,
+    });
+  }
 
   return NextResponse.json({
     results,
-    suggestions: suggestions.slice(0, 5),
+    suggestions: [], // always empty
   });
 }
