@@ -50,3 +50,7 @@ footer p {
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
 }
+
+.brand {
+  color: red;
+}

@@ -123,7 +123,7 @@ export default function DictionaryPage() {
           setSelectedWord(null);
         }}
         placeholder="Search a word or translation…"
-        className="mt-6 w-full rounded-md px-3 py-2 border focus:outline-none"
+        className=" bg-black  mt-6 w-full rounded-md px-3 py-2 border focus:outline-none"
       />
       
       {!loading && !selectedWord && results.length > 0 && (
