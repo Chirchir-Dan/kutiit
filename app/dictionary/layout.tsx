@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/supabaseServer";
 import { setDictionaryIndex } from "@/lib/dictionaryIndex";
 
 export default async function DictionaryLayout({ children }: { children: ReactNode }) {
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer(); // ← FIXED
 
   const { data: words } = await supabase
     .from("words")

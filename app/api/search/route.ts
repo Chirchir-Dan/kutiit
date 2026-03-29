@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseBrowserClient } from "@/lib/supabaseClient";
 
 // Levenshtein distance (optimized)
 function levenshtein(a: string, b: string): number {
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  const { data: words, error } = await supabase
+  const { data: words, error } = await supabaseBrowserClient
     .from("words")
     .select("*");
 

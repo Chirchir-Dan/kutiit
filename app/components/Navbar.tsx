@@ -12,11 +12,18 @@ export default function NavBar() {
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isActive = (path: string) =>
-    pathname === path ? "border-b-2 border-red-600 text-green-400" : "text-white";
+    mounted && pathname === path
+       ? "border-b-2 border-red-600 text-green-400"
+        : "text-white";
 
   // Load user + listen for auth changes
   useEffect(() => {
@@ -62,12 +69,13 @@ export default function NavBar() {
           <div className="flex items-center space-x-4">
 
             {/* Navigation links with active underline */}
-            <Link href="/dictionary" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/dictionary")}`}>
-              Dictionary
-            </Link>
-
             <Link href="/about" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/about")}`}>
               About
+            </Link>
+
+
+            <Link href="/dictionary" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/dictionary")}`}>
+              Dictionary
             </Link>
 
             <Link href="/community" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/community")}`}>
