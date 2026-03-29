@@ -2,6 +2,7 @@ import "./global.css";
 import NavBar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import type { ReactNode } from "react";
+import { ToastProvider } from "@/app/components/Toast";
 
 export const metadata = {
   title: "Kutiit — Nandi Dictionary",
@@ -12,13 +13,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-[--background] text-[--foreground]">
-        <NavBar />
+        <ToastProvider>
+          <NavBar />
 
-        <main className="min-h-screen max-w-4xl mx-auto px-6 py-12">
-          {children}
-        </main>
+          <main className="min-h-screen max-w-4xl mx-auto px-6 py-12">
+            {children}
+          </main>
 
-        <Footer />
+          <Footer />
+        </ToastProvider>
       </body>
     </html>
   );

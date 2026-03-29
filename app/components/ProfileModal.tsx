@@ -12,6 +12,7 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
 
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAvatarOpen, setViewAvatarOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,7 +37,6 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Optional: file size limit
     if (file.size > 1_000_000) {
       alert("Please choose an image smaller than 1MB.");
       return;
@@ -94,6 +94,33 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
     window.location.href = "/";
   };
 
+  const deleteAccount = async () => {
+    if (!user) return;
+
+    const session = await supabaseBrowserClient.auth.getSession();
+    const token = session.data.session?.access_token;
+
+    if (!token) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    const res = await fetch("/api/delete-account", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      alert("Could not delete account. Please try again.");
+      return;
+    }
+
+    await supabaseBrowserClient.auth.signOut();
+    window.location.href = "/";
+  };
+
   if (!user) return null;
 
   return (
@@ -121,7 +148,6 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
                 className="w-24 h-24 rounded-full border border-green-600 object-cover cursor-pointer hover:opacity-80 transition"
               />
 
-              {/* Avatar Menu */}
               {avatarMenuOpen && (
                 <div className="absolute top-28 bg-black border border-red-600 rounded-md shadow-lg w-40 py-2 z-50">
                   <button
@@ -157,7 +183,6 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
                 </div>
               )}
 
-              {/* Hidden file input */}
               <input
                 type="file"
                 accept="image/*"
@@ -205,6 +230,14 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
             >
               Logout
             </button>
+
+            {/* Delete Account */}
+            <button
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="w-full py-2 text-red-500 hover:text-red-400 text-sm mt-2"
+            >
+              Delete Account
+            </button>
           </div>
         </div>
       </div>
@@ -224,6 +257,35 @@ export default function ProfileModal({ onClose }: { onClose: () => void }) {
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-black border border-red-600 p-6 rounded-lg max-w-sm w-full">
+            <h2 className="text-lg font-bold text-red-400 mb-4">Delete Account?</h2>
+
+            <p className="text-sm text-gray-300 mb-4">
+              This action is permanent and cannot be undone.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={deleteAccount}
+                className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
