@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { supabaseBrowserClient } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "./AuthModal";
@@ -11,6 +12,11 @@ export default function NavBar() {
   const [user, setUser] = useState<User | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const pathname = usePathname();
+
+  const isActive = (path: string) =>
+    pathname === path ? "border-b-2 border-red-600 text-green-400" : "text-white";
 
   // Load user + listen for auth changes
   useEffect(() => {
@@ -27,7 +33,7 @@ export default function NavBar() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Listen for profile updates (avatar, name, etc.)
+  // Listen for profile updates
   useEffect(() => {
     function refreshUser() {
       supabaseBrowserClient.auth.getUser().then(({ data }) => {
@@ -55,17 +61,20 @@ export default function NavBar() {
 
           <div className="flex items-center space-x-4">
 
-            {/* Navigation links */}
-            <Link href="/dictionary" className="px-3 py-2 text-sm hover:text-green-400">
+            {/* Navigation links with active underline */}
+            <Link href="/dictionary" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/dictionary")}`}>
               Dictionary
             </Link>
-            <Link href="/about" className="px-3 py-2 text-sm hover:text-green-400">
+
+            <Link href="/about" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/about")}`}>
               About
             </Link>
-            <Link href="/community" className="px-3 py-2 text-sm hover:text-green-400">
+
+            <Link href="/community" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/community")}`}>
               Community
             </Link>
-            <Link href="/contact" className="px-3 py-2 text-sm hover:text-green-400">
+
+            <Link href="/contact" className={`px-3 py-2 text-sm hover:text-green-400 ${isActive("/contact")}`}>
               Contact
             </Link>
 
@@ -88,7 +97,7 @@ export default function NavBar() {
             {/* Donate button */}
             <Link
               href="/donate"
-              className="ml-2 px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
+              className={`ml-2 px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 ${isActive("/donate")}`}
             >
               Donate
             </Link>
